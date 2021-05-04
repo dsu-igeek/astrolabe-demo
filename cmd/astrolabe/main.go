@@ -3,9 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"github.com/vmware-tanzu/astrolabe/pkg/psql"
+	"github.com/vmware-tanzu/astrolabe/pkg/s3repository"
+	"strings"
+
 	// restClient is the underlying REST/Swagger client
 	restClient "github.com/vmware-tanzu/astrolabe/gen/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
@@ -43,6 +49,16 @@ func main() {
 			&cli.StringFlag{
 				Name:     "destConfDir",
 				Usage:    "Optional different destination Astrolabe configuration directory for cp",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name: "s3Repo",
+				Usage: "Configuration to use an S3 repo as the primary repository.  Formatted as '<region>:<bucket>:<prefix>'",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name: "destS3Repo",
+				Usage: "Configuration to use an S3 repo as the optional destination repository.  Formatted as '<region>:<bucket>:<prefix>'",
 				Required: false,
 			},
 		},
@@ -96,21 +112,35 @@ func main() {
 	}
 }
 
-func setupProtectedEntityManager(c *cli.Context) (pem astrolabe.ProtectedEntityManager, err error) {
-	pem, _, err = setupProtectedEntityManagers(c, false)
+func setupProtectedEntityManager(context *cli.Context) (pem astrolabe.ProtectedEntityManager, err error) {
+	pem, _, err = setupProtectedEntityManagers(context, false)
 	return
 }
 
-func setupProtectedEntityManagers(c *cli.Context, allowDual bool) (srcPem astrolabe.ProtectedEntityManager,
+func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem astrolabe.ProtectedEntityManager,
 	destPem astrolabe.ProtectedEntityManager, err error) {
-	confDirStr := c.String("confDir")
+	confDirStr := context.String("confDir")
+	s3RepoStr := context.String("s3Repo")
+	if confDirStr != "" && s3RepoStr != "" {
+		err = errors.New("Cannot set confDir and s3Repo simultaneously")
+		return
+	}
 	if confDirStr != "" {
+		addOnInits := make(map[string]server.InitFunc)
+		addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
 		srcPem = server.NewProtectedEntityManager(confDirStr, nil, logrus.New())
 	}
+	if s3RepoStr != "" {
+
+		srcPem, err = createS3Repo(s3RepoStr)
+		if err != nil {
+			return
+		}
+	}
 	if srcPem == nil {
-		host := c.String("host")
+		host := context.String("host")
 		if host != "" {
-			srcPem, err = setupHostPEM(host, c)
+			srcPem, err = setupHostPEM(host, context)
 			if err != nil {
 				return
 			}
@@ -118,14 +148,25 @@ func setupProtectedEntityManagers(c *cli.Context, allowDual bool) (srcPem astrol
 	}
 
 	if allowDual {
-		destConfDirStr := c.String("destConfDir")
+		destConfDirStr := context.String("destConfDir")
+		destS3RepoStr := context.String("destS3Repo")
+		if destConfDirStr != "" && destS3RepoStr != "" {
+			err = errors.New("Cannot set destConfDirStr and destS3Repo simultaneously")
+			return
+		}
 		if destConfDirStr != "" {
 			destPem = server.NewProtectedEntityManager(confDirStr, nil, logrus.New())
 		}
+		if destS3RepoStr != "" {
+			destPem, err = createS3Repo(destS3RepoStr)
+			if err != nil {
+				return
+			}
+		}
 		if destPem == nil {
-			destHost := c.String("destHost")
+			destHost := context.String("destHost")
 			if destHost != "" {
-				destPem, err = setupHostPEM(destHost, c)
+				destPem, err = setupHostPEM(destHost, context)
 				if err != nil {
 					return
 				}
@@ -366,4 +407,27 @@ func zipPE(ctx context.Context, pe astrolabe.ProtectedEntity, writer io.WriteClo
 	if err != nil {
 		log.Fatalf("Failed to zip protected entity %s, err = %v", pe.GetID().String(), err)
 	}
+}
+
+func createS3Repo(s3RepoStr string) (s3Pem astrolabe.ProtectedEntityManager, err error) {
+	s3Components := strings.Split(s3RepoStr, ":")
+	if len(s3Components) != 3 {
+		err = errors.Errorf("s3Repo arguments should be '<region>:<bucket>:<prefix>', received '%s'", s3RepoStr)
+		return
+	}
+	s3Region := s3Components[0]
+	s3Bucket := s3Components[1]
+	s3Prefix := s3Components[2]
+	var sess *session.Session
+	sess, err = session.NewSession(&aws.Config{
+		Region: aws.String(s3Region)},
+	)
+	if err != nil {
+		return
+	}
+	s3Pem, err = s3repository.NewS3RepositoryProtectedEntityManager(*sess, s3Bucket, s3Prefix, logrus.New())
+	if err != nil {
+		return
+	}
+	return
 }
