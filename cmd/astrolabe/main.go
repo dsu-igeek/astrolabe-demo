@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/dsu-igeek/astrolabe-kopia/pkg/kopiarepo"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -59,6 +60,16 @@ func main() {
 			&cli.StringFlag{
 				Name: "destS3Repo",
 				Usage: "Configuration to use an S3 repo as the optional destination repository.  Formatted as '<region>:<bucket>:<prefix>'",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name: "kopiaRepo",
+				Usage: "Kopia repo directory",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name: "destKopiaRepo",
+				Usage: "Kopia repo directory to use as the optional destination repository",
 				Required: false,
 			},
 		},
@@ -117,12 +128,22 @@ func setupProtectedEntityManager(context *cli.Context) (pem astrolabe.ProtectedE
 	return
 }
 
+func countNonEmptyStrings(strings []string) (count int) {
+	for _, checkStr := range strings {
+		if checkStr != "" {
+			count++
+		}
+	}
+	return
+}
+
 func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem astrolabe.ProtectedEntityManager,
 	destPem astrolabe.ProtectedEntityManager, err error) {
 	confDirStr := context.String("confDir")
 	s3RepoStr := context.String("s3Repo")
-	if confDirStr != "" && s3RepoStr != "" {
-		err = errors.New("Cannot set confDir and s3Repo simultaneously")
+	kopiaRepoDir := context.String("kopiaRepo")
+	if countNonEmptyStrings([]string{confDirStr, s3RepoStr, kopiaRepoDir}) > 1 {
+		err = errors.New("Only set one of confDir, kopiaRepo and s3Repo")
 		return
 	}
 	if confDirStr != "" {
@@ -131,8 +152,14 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 		srcPem = server.NewProtectedEntityManager(confDirStr, nil, logrus.New())
 	}
 	if s3RepoStr != "" {
-
 		srcPem, err = createS3Repo(s3RepoStr)
+		if err != nil {
+			return
+		}
+	}
+
+	if kopiaRepoDir != "" {
+		srcPem, err = createKopiaRepo(kopiaRepoDir)
 		if err != nil {
 			return
 		}
@@ -150,8 +177,9 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 	if allowDual {
 		destConfDirStr := context.String("destConfDir")
 		destS3RepoStr := context.String("destS3Repo")
-		if destConfDirStr != "" && destS3RepoStr != "" {
-			err = errors.New("Cannot set destConfDirStr and destS3Repo simultaneously")
+		destKopiaRepoStr := context.String("destKopiaRepo")
+		if countNonEmptyStrings([]string{destConfDirStr, destS3RepoStr, destKopiaRepoStr}) > 1 {
+			err = errors.New("Only set one of destConfDir, destS3Repo and destKopiaRepo")
 			return
 		}
 		if destConfDirStr != "" {
@@ -159,6 +187,12 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 		}
 		if destS3RepoStr != "" {
 			destPem, err = createS3Repo(destS3RepoStr)
+			if err != nil {
+				return
+			}
+		}
+		if destKopiaRepoStr != "" {
+			destPem, err = createKopiaRepo(destKopiaRepoStr)
 			if err != nil {
 				return
 			}
@@ -430,4 +464,8 @@ func createS3Repo(s3RepoStr string) (s3Pem astrolabe.ProtectedEntityManager, err
 		return
 	}
 	return
+}
+
+func createKopiaRepo(kopiaRepoStr string) (kopiaPEM astrolabe.ProtectedEntityManager, err error) {
+	return kopiarepo.NewKopiaRepositoryProtectedEntityManager(kopiaRepoStr, logrus.StandardLogger())
 }
