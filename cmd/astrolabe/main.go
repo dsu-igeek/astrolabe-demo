@@ -380,18 +380,21 @@ func cp(c *cli.Context) error {
 	}
 	srcStr := c.Args().First()
 	destStr := c.Args().Get(1)
+	ctx := context.Background()
 	var err error
+	var srcPE, destPE astrolabe.ProtectedEntity
 	var srcPEID, destPEID astrolabe.ProtectedEntityID
 	var srcFile, destFile string
 	srcPEID, err = astrolabe.NewProtectedEntityIDFromString(srcStr)
-	if err != nil {
+	// TODO - come up with a better way to separate PEs from files.
+	if err != nil || strings.HasPrefix(srcStr, "/") {
 		srcFile = srcStr
 	}
 	destPEID, err = astrolabe.NewProtectedEntityIDFromString(destStr)
-	if err != nil {
+	if err != nil || strings.HasPrefix(destStr, "/") {
 		destFile = destStr
 	}
-	pem, err := setupProtectedEntityManager(c)
+	srcPEM, destPEM, err := setupProtectedEntityManagers(c, true)
 	if err != nil {
 		log.Fatalf("Could not setup protected entity manager, err = %v", err)
 	}
@@ -401,46 +404,95 @@ func cp(c *cli.Context) error {
 	fmt.Printf("cp from ")
 	if srcFile != "" {
 		fmt.Printf("file %s", srcFile)
-		reader, err = os.Open(srcFile)
-		if err != nil {
-			log.Fatalf("Could not open srcFile %s, err = %v", srcFile, err)
-		}
 	} else {
+		if srcPEM == nil {
+			log.Fatal("No source Protected Entity Manager specified\n")
+		}
 		fmt.Printf("pe %s", srcPEID.String())
-		srcPE, err := pem.GetProtectedEntity(context.Background(), srcPEID)
+		srcPE, err = srcPEM.GetProtectedEntity(ctx, srcPEID)
 		if err != nil {
 			log.Fatalf("Could not retrieve protected entity ID %s, err: %v", srcPEID.String(), err)
 		}
-		var dw io.WriteCloser
-		reader, dw = io.Pipe()
-		go zipPE(context.Background(), srcPE, dw)
 	}
 	fmt.Printf(" to ")
 	if destFile != "" {
 		fmt.Printf("file %s", destFile)
-		writer, err = os.Create(destFile)
-		if err != nil {
-			log.Fatalf("Could not create file %s, err: %v", destFile, err)
-		}
 	} else {
 		fmt.Printf("pe %s", destPEID.String())
 	}
 	fmt.Printf("\n")
 
-	bytesCopied, err := io.Copy(writer, reader)
+	var bytesCopied int64
+	if srcPE != nil && destFile != "" {
+		// copy a src pe snapshot to a dest file
+		var zipFileWriter io.WriteCloser
+		zipFileWriter, err = os.Create(destFile)
+		if err != nil {
+			log.Fatalf("Could not create file %s, err: %v", destFile, err)
+		}
+		defer func() {
+			if err := zipFileWriter.Close(); err != nil {
+				log.Fatalf("Could not close file %s, err: %v", destFile, err)
+			}
+		}()
+
+		bytesCopied, err = astrolabe.ZipProtectedEntityToFile(ctx, srcPE, zipFileWriter)
+	} else if srcFile != "" && destPEM != nil{
+		// copy a src file to an existing or new dest pe. BTW, the dest pe should be unconsumed.
+		srcFileReader, err := os.Open(srcFile)
+		if err != nil {
+			log.Fatalf("Could not open srcFile %s, err = %v", srcFile, err)
+		}
+		defer srcFileReader.Close()
+
+		fileInfo, err := srcFileReader.Stat()
+		if err != nil {
+			log.Fatalf("Got err %v getting stat for source file %v", err, srcFile)
+		}
+
+		srcPE, err := astrolabe.GetPEFromZipStream(ctx, srcFileReader, fileInfo.Size())
+		if err != nil {
+			return errors.Errorf("Got err %v when unzipping PE from the source zip file", err)
+		}
+
+		destPE, err = destPEM.GetProtectedEntity(ctx, destPEID)
+		if err != nil {
+			log.Printf("Could not retrieve protected entity ID %s, err: %v, will try to create object", destPEID.String(), err)
+		}
+
+		var params map[string]map[string]interface{}
+		if destPE != nil {
+			if err := destPE.Overwrite(ctx, srcPE, params, true); err != nil {
+				return errors.Errorf("Got err %v overwriting the dest PE %v with source PE %v", err, destPE.GetID(), srcPE.GetID())
+			}
+		} else {
+			destPETM := destPEM.GetProtectedEntityTypeManager(destPEID.GetPeType())
+			if destPETM == nil {
+				return errors.Errorf("Could not get destination PETM for type %s", destPEID.GetPeType())
+			}
+			_, err := destPETM.Copy(ctx, srcPE, params, astrolabe.AllocateNewObject)
+			if err != nil {
+				return errors.WithMessagef(err, "Could not copy %s", destPEID.String())
+			}
+		}
+		bytesCopied = fileInfo.Size()
+	} else {
+		reader, err = os.Open(srcFile)
+		if err != nil {
+			log.Fatalf("Could not open srcFile %s, err = %v", srcFile, err)
+		}
+		defer reader.Close()
+
+		bytesCopied, err = io.Copy(writer, reader)
+	}
+
 	if err != nil {
 		log.Fatalf("Error copying %v", err)
 	}
-	fmt.Printf("Copied %d bytes\n", bytesCopied)
-	return nil
-}
 
-func zipPE(ctx context.Context, pe astrolabe.ProtectedEntity, writer io.WriteCloser) {
-	defer writer.Close()
-	err := astrolabe.ZipProtectedEntityToWriter(ctx, pe, writer)
-	if err != nil {
-		log.Fatalf("Failed to zip protected entity %s, err = %v", pe.GetID().String(), err)
-	}
+	fmt.Printf("Copied %d bytes\n", bytesCopied)
+
+	return nil
 }
 
 func createS3Repo(s3RepoStr string) (s3Pem astrolabe.ProtectedEntityManager, err error) {
