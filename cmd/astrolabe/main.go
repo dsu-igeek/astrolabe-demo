@@ -9,13 +9,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/vmware-tanzu/astrolabe/pkg/psql"
+	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
 	"github.com/vmware-tanzu/astrolabe/pkg/s3repository"
+	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
 	"strings"
 
 	// restClient is the underlying REST/Swagger client
 	restClient "github.com/vmware-tanzu/astrolabe/gen/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
+	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	// astrolabeClient is the Astrolabe API on top of the REST client
 	astrolabeClient "github.com/vmware-tanzu/astrolabe/pkg/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/server"
@@ -149,7 +151,9 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 	if confDirStr != "" {
 		addOnInits := make(map[string]server.InitFunc)
 		addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
-		srcPem = server.NewProtectedEntityManager(confDirStr, nil, logrus.New())
+		addOnInits["ebs"] = ebs_astrolabe.NewEBSProtectedEntityTypeManager
+		addOnInits["k8sns"] = kubernetes.NewKubernetesNamespaceProtectedEntityTypeManagerFromConfig
+		srcPem = server.NewProtectedEntityManager(confDirStr, addOnInits, logrus.New())
 	}
 	if s3RepoStr != "" {
 		srcPem, err = createS3Repo(s3RepoStr)
@@ -206,6 +210,9 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 				}
 			}
 		}
+	}
+	if srcPem == nil {
+		err = errors.New("No source Protected Entity Manager config info specified")
 	}
 	if destPem == nil {
 		destPem = srcPem
