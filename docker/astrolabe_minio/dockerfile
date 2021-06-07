@@ -1,0 +1,9 @@
+FROM debian
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates 
+COPY bin/minio /bin
+COPY overrides /
+ENV LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64
+ENV MINIO_ACCESS_KEY=accesskey 
+ENV MINIO_SECRET_KEY=secretkey 
+
+ENTRYPOINT ["/bin/minio", "gateway", "astrolabe", "/etc/astrolabe_conf"]

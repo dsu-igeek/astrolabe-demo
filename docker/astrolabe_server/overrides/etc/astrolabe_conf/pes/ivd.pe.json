@@ -1,0 +1,10 @@
+{
+        "VirtualCenter":"10.208.22.28",
+        "insecureVC":"Y",
+	"user":"administrator@vsphere.local",
+	"password":"Admin!23",
+	"port":"443",
+	"insecure-flag":"true",
+	"cluster-id":"123",
+	"datacenters":"VSAN-DC"
+}
