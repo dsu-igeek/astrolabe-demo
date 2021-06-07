@@ -484,13 +484,26 @@ func cp(c *cli.Context) error {
 		}
 		bytesCopied = fileInfo.Size()
 	} else {
-		reader, err = os.Open(srcFile)
-		if err != nil {
-			log.Fatalf("Could not open srcFile %s, err = %v", srcFile, err)
-		}
-		defer reader.Close()
+		if srcPE != nil && destFile == "" {
+			// TODO - clean up this whole section for better handling of source/destinations
+			destPETM := destPEM.GetProtectedEntityTypeManager(destPEID.GetPeType())
+			if destPETM == nil {
+				return errors.Errorf("Could not get destination PETM for type %s", destPEID.GetPeType())
+			}
+			var params map[string]map[string]interface{}
+			_, err := destPETM.Copy(ctx, srcPE, params, astrolabe.AllocateNewObject)
+			if err != nil {
+				return errors.WithMessagef(err, "Could not copy %s", destPEID.String())
+			}
+		} else {
+			reader, err = os.Open(srcFile)
+			if err != nil {
+				log.Fatalf("Could not open srcFile %s, err = %v", srcFile, err)
+			}
+			defer reader.Close()
 
-		bytesCopied, err = io.Copy(writer, reader)
+			bytesCopied, err = io.Copy(writer, reader)
+		}
 	}
 
 	if err != nil {
