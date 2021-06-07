@@ -1,0 +1,4 @@
+{
+        "kubeconfig":"/etc/astrolabe_confi/kube/config",
+        "snapshotsDir":"/astrolabe_repo"
+}
