@@ -1,5 +1,5 @@
 /* **********************************************************
- * Copyright (c) 1998-2019 VMware, Inc.  All rights reserved. -- VMware Confidential
+ * Copyright (c) 1998-2020 VMware, Inc.  All rights reserved. -- VMware Confidential
  * **********************************************************/
 
 /*
@@ -16,12 +16,24 @@
 
 
 /*
- * Macros __i386__ and __ia64 are intrinsically defined by GCC
+ * Standardize MSVC arch macros to GCC arch macros.
  */
 #if defined _MSC_VER && defined _M_X64
-#  define __x86_64__
+#  define __x86_64__ 1
 #elif defined _MSC_VER && defined _M_IX86
-#  define __i386__
+#  define __i386__ 1
+#elif defined _MSC_VER && defined _M_ARM64
+#  define __aarch64__ 1
+#elif defined _MSC_VER && defined _M_ARM
+#  define __arm__ 1
+#endif
+
+/*
+ * Apple/Darwin uses __arm64__, but defines the more standard
+ * __aarch64__ too. Code below assumes __aarch64__.
+ */
+#if defined __arm64__ && !defined __aarch64__
+#  error Unexpected: defined __arm64__ without __aarch64__
 #endif
 
 /*
@@ -72,12 +84,20 @@
 #define vm_arm_64 0
 #endif
 
+#if defined(__APPLE__) && defined(VM_ARM_64)
+#define VM_MAC_ARM
+#define vm_mac_arm 1
+#else
+#define vm_mac_arm 0
+#endif
+
 #define vm_64bit (sizeof (void *) == 8)
 
 #ifdef _MSC_VER
 
 #pragma warning (3 :4505) // unreferenced local function
 #pragma warning (disable :4018) // signed/unsigned mismatch
+#pragma warning (suppress:4619) // suppress warning next line (C4761 was removed in vs2019u4)
 #pragma warning (disable :4761) // integral size mismatch in argument; conversion supplied
 #pragma warning (disable :4305) // truncation from 'const int' to 'short'
 #pragma warning (disable :4244) // conversion from 'unsigned short' to 'unsigned char'
@@ -93,19 +113,22 @@
 
 /*
  * C99 <stdint.h> or equivalent
- * Special cases:
- * - Linux kernel lacks <stdint.h>, preferring <linux/types.h>
+ * Userlevel: 100% <stdint.h>
+ * - gcc-4.5 or later, and earlier for some sysroots
+ * - vs2010 or later
+ * Kernel: <stdint.h> is often unavailable (and no common macros)
+ * - Linux: uses <linux/types.h> instead
  *   (and defines uintptr_t since 2.6.24, but not intptr_t)
- * - Solaris collides with gcc <stdint.h>, but has <sys/stdint.h>
- * - VMKernel + FreeBSD collides with gcc <stdint.h>, but has <sys/stdint.h>
- * - VMKernel (+DECODERLIB) share macros with Linux kernel
- * - Windows only added <stdint.h> in vc10/vs2010 (MSC ver 1600),
- *   and WDKs lack it.
+ * - Solaris: conflicts with gcc <stdint.h>, but has <sys/stdint.h>
+ * - VMKernel + FreeBSD combination collides with gcc <stdint.h>,
+ *   but has <sys/stdint.h>
+ * - Windows: some types in <crtdefs.h>, no definitions for other types.
  *
  * NB about LLP64 in LP64 environments:
  * - Apple uses 'long long' uint64_t
  * - Linux kernel uses 'long long' uint64_t
  * - Linux userlevel uses 'long' uint64_t
+ * - Windows uses 'long long' uint64_t
  */
 #if !defined(VMKERNEL) && !defined(DECODERLIB) && \
     defined(__linux__) && defined(__KERNEL__)
@@ -119,11 +142,8 @@
       (defined(VMKERNEL) && defined(__FreeBSD__)) || \
       defined(_SYS_STDINT_H_)
 #  include <sys/stdint.h>
-#elif !defined(_MSC_VER)
-   /* Common case */
-#  include <stdint.h>
-#else
-   /* COMPAT: until pre-vc10 is retired */
+#elif defined(_MSC_VER) && defined(_KERNEL_MODE)
+   /* Windows driver headers (km/crt) lack stdint.h */
 #  include <crtdefs.h>  // uintptr_t
    typedef unsigned __int64   uint64_t;
    typedef unsigned int       uint32_t;
@@ -134,6 +154,9 @@
    typedef int                int32_t;
    typedef short              int16_t;
    typedef signed char        int8_t;
+#else
+   /* Common case */
+#  include <stdint.h>
 #endif
 
 /*
@@ -327,12 +350,6 @@ typedef int64 VmTimeVirtualClock;  /* Virtual Clock kept in CPU cycles */
  * Suffix for 64-bit constants.  Use it like this:
  *    CONST64(0x7fffffffffffffff) for signed or
  *    CONST64U(0x7fffffffffffffff) for unsigned.
- *
- * 2004.08.30(thutt):
- *   The vmcore/asm64/gen* programs are compiled as 32-bit
- *   applications, but must handle 64 bit constants.  If the
- *   64-bit-constant defining macros are already defined, the
- *   definition will not be overwritten.
  */
 
 #if !defined(CONST64) || !defined(CONST64U)
@@ -660,22 +677,28 @@ typedef void * UserVA;
 
 /*
  * At present, we effectively require a compiler that is at least
- * gcc-3.3 (circa 2003).  Enforce this here, various things below
+ * gcc-4.1 (circa 2006).  Enforce this here, various things below
  * this line depend upon it.
  *
- * In practice, most things presently compile with gcc-4.1 or gcc-4.4.
- * The various linux kernel modules may use older (gcc-3.3) compilers.
+ * Current oldest compilers:
+ * - guest tools: 4.1.2 (freebsd/solaris)
+ * - buildhost compiler: 4.4.3
+ * - hosted kernel modules: 4.5
+ *
+ * SWIG's preprocessor is exempt.
  */
-#if defined __GNUC__ && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 3))
-#error "gcc version is too old to compile assembly, need gcc-3.3 or better"
+#ifndef SWIG
+#if defined __GNUC__ && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 1))
+#error "gcc version is too old, need gcc-4.1 or better"
+#endif
 #endif
 
 /*
- * Similarly, we require a compiler that is at least vc90 (vs2008).
+ * Similarly, we require a compiler that is at least vs2012.
  * Enforce this here.
  */
-#if defined _MSC_VER && _MSC_VER < 1500
-#error "cl.exe version is too old, need vc90 or better"
+#if defined _MSC_VER && _MSC_VER < 1700
+#error "cl.exe version is too old, need vs2012 or better"
 #endif
 
 
@@ -837,12 +860,10 @@ typedef void * UserVA;
 #endif
 
 #ifndef UNUSED_TYPE
-// XXX _Pragma would better but doesn't always work right now.
 #  define UNUSED_TYPE(_parm) UNUSED_PARAM(_parm)
 #endif
 
 #ifndef UNUSED_VARIABLE
-// XXX is there a better way?
 #  define UNUSED_VARIABLE(_var) (void)_var
 #endif
 
@@ -857,26 +878,18 @@ typedef void * UserVA;
 
 /*
  * ALIGNED specifies minimum alignment in "n" bytes.
+ *
+ * NOTE: __declspec(align) has limited syntax; it must essentially be
+ *       an integer literal.  Expressions, such as sizeof(), do not
+ *       work.
  */
 
 #ifdef __GNUC__
 #define ALIGNED(n) __attribute__((__aligned__(n)))
+#elif defined(_MSC_VER)
+#define ALIGNED(n) __declspec(align(n))
 #else
 #define ALIGNED(n)
-#endif
-
-
-/*
- * Encapsulate the syntactic differences between gcc and msvc alignment control.
- * BOUNDARY must match in the prefix and suffix.
- */
-
-#ifdef _WIN32
-#define ALIGN_PREFIX(BOUNDRY) __declspec(align(BOUNDRY))
-#define ALIGN_SUFFIX(BOUNDRY)
-#else
-#define ALIGN_PREFIX(BOUNDRY)
-#define ALIGN_SUFFIX(BOUNDRY) __attribute__((__aligned__(BOUNDRY)))
 #endif
 
 

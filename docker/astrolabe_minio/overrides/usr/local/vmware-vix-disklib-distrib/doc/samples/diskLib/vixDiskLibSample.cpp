@@ -1,5 +1,5 @@
 /* *************************************************
- * Copyright 2007-2019 VMware, Inc. All rights reserved. -- VMware Confidential
+ * Copyright 2007-2020 VMware, Inc. All rights reserved. -- VMware Confidential
  * *************************************************/
 
 /*
@@ -9,39 +9,41 @@
  */
 
 #ifdef _WIN32
-#include <windows.h>
-#include <winsock.h>
-#include <tchar.h>
-#include <process.h>
+#   define NOMINMAX
+#   include <process.h>
+#   include <tchar.h>
+#   include <windows.h>
+#   include <winsock.h>
 #else
 #include <dlfcn.h>
 #include <sys/time.h>
 #endif
 
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <stdexcept>
 #include <algorithm>
-#include <list>
-#include <memory>
-#include <functional>
-#include <map>
-#include <deque>
-#include <mutex>
-#include <thread>
-#include <future>
-#include <chrono>
-#include <forward_list>
-#include <type_traits>
+#include <assert.h>
 #include <atomic>
+#include <chrono>
+#include <deque>
+#include <forward_list>
+#include <functional>
+#include <future>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <sstream>
+#include <stdexcept>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <thread>
+#include <time.h>
+#include <type_traits>
+#include <vector>
 
 #ifdef _WIN32
 #define FOR_MNTAPI
@@ -155,7 +157,7 @@ public:
 class VixDisk;
 
 static int ParseArguments(int argc, char* argv[]);
-template <int SIZE, typename TYPE, typename LOCK>
+template<size_t SIZE, typename TYPE, typename LOCK>
 static std::unique_ptr<BufferPoolInterface<TYPE>>
 getBufferPool(const VixDisk& disk, size_t bufSize);
 static void DoCreate(void);
@@ -964,50 +966,42 @@ class BufferPool : public BufferPoolInterface<TYPE>,  private LOCK
 };
 
 // specialization for unlimited size buffer pool
-template <typename TYPE, typename LOCK, typename ALLOC>
-class BufferPool<-1, TYPE, LOCK, ALLOC> : public BufferPoolInterface<TYPE>
-{
-   public:
-      using Buffer = std::map<TYPE*, typename ALLOC::ptr_type>;
+template<typename TYPE, typename LOCK, typename ALLOC>
+class BufferPool<std::numeric_limits<size_t>::max(), TYPE, LOCK, ALLOC>
+   : public BufferPoolInterface<TYPE> {
+public:
+   using Buffer = std::map<TYPE *, typename ALLOC::ptr_type>;
 
-      explicit BufferPool(size_t bz)
-         : _bufSize(bz)
-         {}
+   explicit BufferPool(size_t bz) : _bufSize(bz) {}
 
-      BufferPool(size_t bz, ALLOC&& alloc)
-         : _bufSize(bz), _alloc(std::forward<ALLOC>(alloc))
-         {}
+   BufferPool(size_t bz, ALLOC&& alloc)
+      : _bufSize(bz), _alloc(std::forward<ALLOC>(alloc)) {}
 
-      ~BufferPool() {}
+   ~BufferPool() {}
 
-      size_t size()
-      {
-         return -1;
+   size_t size() { return std::numeric_limits<size_t>::max(); }
+
+   TYPE *getBuffer() {
+      TYPE *buffer;
+      auto buf = _alloc.allocBuf(_bufSize);
+
+      buffer = buf.get();
+
+      _buf[buffer] = std::move(buf);
+
+      return buffer;
+   }
+
+   void returnBuffer(TYPE *buf) {
+      if (!_buf.erase(buf)) {
+         assert(0);
       }
+   }
 
-      TYPE* getBuffer()
-      {
-         TYPE *buffer;
-         auto buf = _alloc.allocBuf(_bufSize);
-
-         buffer = buf.get();
-
-         _buf[buffer] = std::move(buf);
-
-         return buffer;
-      }
-
-      void returnBuffer(TYPE* buf)
-      {
-         if (!_buf.erase(buf)) {
-            assert(0);
-         }
-      }
-
-   private:
-      size_t _bufSize;
-      Buffer _buf;
-      ALLOC _alloc;
+private:
+   size_t _bufSize;
+   Buffer _buf;
+   ALLOC _alloc;
 };
 
 #ifndef VIX_AIO_BUFPOOL_SIZE
@@ -1223,7 +1217,9 @@ void DiskIOPipeline::io(VixDisk::Ptr disk, bool read)
    }
    bufSize = appGlobals.bufSize * VIXDISKLIB_SECTOR_SIZE;
 
-   auto bufPool = getBufferPool<-1, uint8, FakeLock>(*disk, bufSize);
+   auto bufPool =
+      getBufferPool<std::numeric_limits<size_t>::max(), uint8, FakeLock>(
+         *disk, bufSize);
    doIO(*bufPool, disk, read, bufSize);
 }
 
@@ -1992,7 +1988,7 @@ ParseArguments(int argc, char* argv[])
     return 0;
 }
 
-template <int SIZE, typename TYPE, typename LOCK>
+template<size_t SIZE, typename TYPE, typename LOCK>
 static std::unique_ptr<BufferPoolInterface<TYPE>>
 getBufferPool(const VixDisk& disk, size_t bufSize)
 {
@@ -2165,8 +2161,9 @@ DoFill(void)
 {
     VixDisk disk(appGlobals.connection, appGlobals.diskPaths[0].c_str(),
                  appGlobals.openFlags);
-    auto bufPool = getBufferPool<-1, uint8, FakeLock>
-                      (disk, VIXDISKLIB_SECTOR_SIZE);
+    auto bufPool =
+       getBufferPool<std::numeric_limits<size_t>::max(), uint8, FakeLock>(
+          disk, VIXDISKLIB_SECTOR_SIZE);
     DoFillIO(*bufPool, disk);
 }
 
