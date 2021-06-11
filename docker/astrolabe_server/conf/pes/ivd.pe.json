@@ -1,5 +1,5 @@
 {
-        "VirtualCenter":"10.208.22.28",
+        "VirtualCenter":"10.182.129.179",
         "insecureVC":"Y",
 	"user":"administrator@vsphere.local",
 	"password":"Admin!23",
