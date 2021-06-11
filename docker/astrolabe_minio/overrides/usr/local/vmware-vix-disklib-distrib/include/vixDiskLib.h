@@ -193,6 +193,7 @@ enum {
    VIX_E_HOST_NBD_HASHFILE_VOLUME               = 14012,
    VIX_E_HOST_NBD_HASHFILE_INIT                 = 14013,
    VIX_E_HOST_SERVER_SHUTDOWN                   = 14014,
+   VIX_E_HOST_SERVER_NOT_AVAILABLE              = 14015,
    
    /* Disklib errors */
    VIX_E_DISK_INVAL                             = 16000,
