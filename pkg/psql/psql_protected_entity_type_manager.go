@@ -10,7 +10,6 @@ import (
 	v1 "github.com/zalando/postgres-operator/pkg/apis/acid.zalan.do/v1"
 	"github.com/zalando/postgres-operator/pkg/util/k8sutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -29,11 +28,12 @@ const (
 
 func NewPSQLProtectedEntityTypeManager(params map[string]interface{}, s3Config astrolabe.S3Config,
 	logger logrus.FieldLogger) (astrolabe.ProtectedEntityTypeManager, error) {
-	var restConfig *restclient.Config
-	var err error
-	if kubeConfig, hasKubeConfig := params[KubeConfigKey].(string); hasKubeConfig {
-		restConfig, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
+	kubeconfgPathObj := params["KubeConfigKey"]
+	kubeconfigPath := ""
+	if kubeconfgPathObj != nil {
+		kubeconfigPath = kubeconfgPathObj.(string)
 	}
+	restConfig, err := clientcmd.BuildConfigFromFlags("masterURL", kubeconfigPath)
 	if err != nil {
 		return PSQLProtectedEntityTypeManager{}, errors.Wrap(err, "could not create restConfig")
 	}
