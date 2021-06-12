@@ -1,2 +1,4 @@
-kubectl create -n astrolabe configmap astrolabe-pes --from-file=conf/pes
-kubectl create -n astrolabe configmap astrolabe-s3config --from-file=conf/s3config.json
+kubectl delete -n astrolabe configmap astrolabe-pes 
+kubectl create -n astrolabe configmap astrolabe-pes --from-file=../../docker/astrolabe_server/conf/pes
+kubectl delete -n astrolabe configmap astrolabe-conf 
+kubectl create -n astrolabe configmap astrolabe-conf --from-file=../../docker/astrolabe_server/conf

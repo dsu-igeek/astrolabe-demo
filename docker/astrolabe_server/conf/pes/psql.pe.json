@@ -1,4 +1,3 @@
 {
-        "kubeconfig":"/home/dsmithuchida/.kube/config",
-        "snapshotsDir":"/home/dsmithuchida/astrolabe_repo"
+        "snapshotsDir":"/astrolabe_repo"
 }

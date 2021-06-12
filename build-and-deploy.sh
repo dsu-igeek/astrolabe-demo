@@ -1,10 +1,10 @@
 #!/bin/sh
 
 cd cmd/astrolabe_server
-go build
+LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64 go build
 cp astrolabe_server ../../docker/astrolabe_server/bin/astrolabe_server
 cd ../../../../minio/minio/
-make
+LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64 make
 cp minio ../../dsu-igeek/astrolabe-demo/docker/astrolabe_minio/bin/minio
 
 TAG=`date '+%b-%d-%Y-%H-%M-%S'`
