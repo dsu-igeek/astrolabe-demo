@@ -1,0 +1,3 @@
+docker/astrolabe_minio/bin/minio
+docker/astrolabe_server/bin/astrolabe_server
+.idea
