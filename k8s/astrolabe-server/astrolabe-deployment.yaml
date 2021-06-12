@@ -10,14 +10,12 @@ spec:
       port: 1323
       protocol: TCP
       targetPort: 1323
+    - name: astrolabe-minio-http
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
   selector:
     app: astrolabe-server
-    #  - name: astrolabe-minio-http
-    #    port: 9000
-    #    protocol: TCP
-    #    targetPort: 9000
-    #  selector:
-    #    app: astrolabe-minio
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -38,24 +36,28 @@ metadata:
     app: astrolabe-server
   name: astrolabe-server
 spec:
-#  volumes:
-#    - name: etcd0-storage
-#      persistentVolumeClaim:
-#       claimName: etcd0-pv-claim
-#  name: astrolabe-server
   containers:
   - name: astrolabe-server
-    image: dsmithuchida/astrolabe_server:06-08-2020-001
+    image: dsmithuchida/astrolabe_server:Jun-12-2021-02-03-17
     volumeMounts:
     - name: astrolabe-pes
       mountPath: /etc/astrolabe_conf/pes
     - name: astrolabe-conf
       mountPath: /etc/astrolabe_conf
-#       - mountPath: "/etcd0.etcd"
-#         name: etcd0-storage
     ports:
     - containerPort: 1323
       name: client
+      protocol: TCP
+  - name: astrolabe-minio
+    image: dsmithuchida/astrolabe_minio:Jun-12-2021-02-03-17
+    volumeMounts:
+    - name: astrolabe-pes
+      mountPath: /etc/astrolabe_conf/pes
+    - name: astrolabe-conf
+      mountPath: /etc/astrolabe_conf
+    ports:
+    - containerPort: 9000
+      name: minio
       protocol: TCP
   volumes:
     - name: astrolabe-pes
