@@ -38,7 +38,7 @@ metadata:
 spec:
   containers:
   - name: astrolabe-server
-    image: dsmithuchida/astrolabe_server:latest
+    image: dsmithuchida/astrolabe_server:Jun-09-2021-10-16-48
     volumeMounts:
     - name: astrolabe-pes
       mountPath: /etc/astrolabe_conf/pes
@@ -49,7 +49,7 @@ spec:
       name: client
       protocol: TCP
   - name: astrolabe-minio
-    image: dsmithuchida/astrolabe_minio:latest
+    image: dsmithuchida/astrolabe_minio:Jun-09-2021-10-16-48
     volumeMounts:
     - name: astrolabe-pes
       mountPath: /etc/astrolabe_conf/pes
