@@ -6,8 +6,10 @@ IP=`kubectl --kubeconfig kube/config get nodes -o json | jq -r '.items[] | selec
 S3CONFIG_FILE=$ASTROLABE_CONFIG_DIR/s3config.json
 echo "{" > $S3CONFIG_FILE
 echo "	\"host\":\"$IP\"," >> $S3CONFIG_FILE
-echo "	\"port\":9000," >> $S3CONFIG_FILE
-echo "	\"accessKey\":\"accessKey\"," >> $S3CONFIG_FILE
-echo "	\"secret\":\"secretkey\"" >> $S3CONFIG_FILE
+echo "	\"port\":30900," >> $S3CONFIG_FILE
+echo "	\"accessKey\":\"accesskey\"," >> $S3CONFIG_FILE
+echo "	\"secret\":\"secretkey\"", >> $S3CONFIG_FILE
+echo "	\"http\":true", >> $S3CONFIG_FILE
+echo "	\"region\":\"astrolabe\"" >> $S3CONFIG_FILE
 echo "}" >> $S3CONFIG_FILE
 
