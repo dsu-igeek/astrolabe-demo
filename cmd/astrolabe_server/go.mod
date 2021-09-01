@@ -21,5 +21,6 @@ replace github.com/kopia/kopia => ../../../../kopia/kopia
 replace github.com/dsu-igeek/astrolabe-demo => ../..
 
 replace github.com/vmware-tanzu/velero-plugin-for-aws => ../../../../vmware-tanzu/velero-plugin-for-aws
+replace github.com/vmware-tanzu/velero-plugin-for-vsphere => ../../../../vmware-tanzu/velero-plugin-for-vsphere
 
 replace github.com/vmware-tanzu/astrolabe-velero => ../../../../vmware-tanzu/astrolabe-velero
