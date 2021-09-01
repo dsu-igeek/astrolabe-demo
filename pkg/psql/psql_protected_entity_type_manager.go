@@ -11,6 +11,7 @@ import (
 	"github.com/zalando/postgres-operator/pkg/util/k8sutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
 )
 
 type PSQLProtectedEntityTypeManager struct {
@@ -30,10 +31,14 @@ func NewPSQLProtectedEntityTypeManager(params map[string]interface{}, s3Config a
 	logger logrus.FieldLogger) (astrolabe.ProtectedEntityTypeManager, error) {
 	kubeconfgPathObj := params["KubeConfigKey"]
 	kubeconfigPath := ""
+
 	if kubeconfgPathObj != nil {
 		kubeconfigPath = kubeconfgPathObj.(string)
+	} else {
+		kubeconfigPath = os.Getenv("KUBECONFIG")
 	}
-	restConfig, err := clientcmd.BuildConfigFromFlags("masterURL", kubeconfigPath)
+	restConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+
 	if err != nil {
 		return PSQLProtectedEntityTypeManager{}, errors.Wrap(err, "could not create restConfig")
 	}

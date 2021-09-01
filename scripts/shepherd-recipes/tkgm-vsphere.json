@@ -2,15 +2,15 @@
   "recipe": {
     "launcher": "vane",
     "fetcher": "git",
-    "source": "git@gitlab.eng.vmware.com:shepherd/terraform-templates.git",
+    "source": "git@gitlab.eng.vmware.com:shepherd/recipes.git",
     "symbol": "master",
     "data": {
       "path": "tkg/vc-testbed",
       "vc-build": "ob-15952498",
       "esx-build": "ob-15843807",
       "tkg-enabled": "true",
-      "tkg-version": "1.2.1",
-      "corgi-ref": "master-tkg"
+      "tkg-version": "1.3.0",
+      "corgi-ref": "1246bbd6ee4b0df574bd8292e3d956778bed18b0"
     },
     "meta": {
       "nimbus_user": "dsmithuchida"

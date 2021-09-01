@@ -75,4 +75,5 @@ spec:
         claimName: astrolabe-repo
   imagePullSecrets:
   - name: regcred
+  serviceAccountName: astrolabe-service-account
   restartPolicy: Always
