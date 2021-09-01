@@ -142,7 +142,7 @@ func (this PSQLProtectedEntity) GetDataReader(ctx context.Context) (io.ReadClose
 		cmd := exec.Command("/usr/bin/kubectl", "run", "-n", namespace, podName, "--image=dpcpinternal/pg-dump:0.0.5",
 			"--env", "PGPASSWORD=" + pgpassword, "--env",
 			"PGHOST=" + pghost, "--env", "PGUSER=" +pguser, "-it", "--restart=Never", "--rm")
-
+		fmt.Printf("Executing command %v", cmd)
 		cmdStdout, err := cmd.StdoutPipe()
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to get cmd's stdout")
