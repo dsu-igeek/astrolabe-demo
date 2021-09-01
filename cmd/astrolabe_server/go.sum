@@ -669,8 +669,6 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasttemplate v1.0.1 h1:tY9CJiPnMXf1ERmG2EyK7gNUd+c6RKGD0IfU8WdUSz8=
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv3vaXspKw=
-github.com/vmware-tanzu/velero-plugin-for-vsphere v1.2.1 h1:ffOryeuDmLJa8VBbqZAVlF5Wraw6QWzdOlm+5v8eSoQ=
-github.com/vmware-tanzu/velero-plugin-for-vsphere v1.2.1/go.mod h1:olhKbfLUc6pTQXEzjsWj++arWC0gZVUUUvW2l5E2H5g=
 github.com/vmware/govmomi v0.22.2-0.20200329013745-f2eef8fc745f h1:6LIYlihC1/LDUhZ7zYVp1WOEY5owzsvogiaHBqvBzPU=
 github.com/vmware/govmomi v0.22.2-0.20200329013745-f2eef8fc745f/go.mod h1:Y+Wq4lst78L85Ge/F8+ORXIWiKYqaro1vhAulACy9Lc=
 github.com/vmware/virtual-disks v0.0.2 h1:zDlvkj2MIBYeujBBYNr9zCaMAcTnP4mAgdIBcHmmaeM=
