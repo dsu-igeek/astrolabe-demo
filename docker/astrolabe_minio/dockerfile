@@ -1,4 +1,4 @@
-FROM ubuntu:21.04
+FROM ubuntu:focal
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates 
 RUN apt-get install -y curl
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kubectl

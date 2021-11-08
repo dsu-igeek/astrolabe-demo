@@ -3,7 +3,7 @@ module github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.36.29
+	github.com/aws/aws-sdk-go v1.38.49
 	github.com/dsu-igeek/astrolabe-demo v0.0.0-00010101000000-000000000000
 	github.com/dsu-igeek/astrolabe-kopia v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1

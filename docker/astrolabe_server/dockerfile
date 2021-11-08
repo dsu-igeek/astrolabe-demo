@@ -1,12 +1,17 @@
-FROM ubuntu:21.04
+FROM golang:1.16 as delve
+
+RUN go get github.com/go-delve/delve/cmd/dlv
+
+FROM ubuntu:focal
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates 
 RUN apt-get install -y curl
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kubectl
 RUN chmod +x ./kubectl
 RUN mv ./kubectl /usr/local/bin/kubectl
 COPY bin/astrolabe_server /bin
+COPY --from=delve /go/bin/dlv /usr/bin/dlv
 COPY overrides /
 ENV LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64
 
-ENTRYPOINT ["/bin/astrolabe_server", "--confDir", "/etc/astrolabe_conf", "--insecure"]
+ENTRYPOINT ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "--continue", "--", "/bin/astrolabe_server", "--confDir", "/etc/astrolabe_conf", "--insecure"]
 #ENTRYPOINT ["/bin/bash"]

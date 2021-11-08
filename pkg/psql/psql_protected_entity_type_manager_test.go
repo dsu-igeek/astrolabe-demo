@@ -23,7 +23,7 @@ func TestProtectedEntityTypeManager(t *testing.T) {
 		t.Fatalf("Could not get protected entity err %v", err)
 	}
 
-	snapshotID, err := pe.Snapshot(context.TODO())
+	snapshotID, err := pe.Snapshot(context.TODO(), map[string]map[string]interface{}{})
 	if err != nil {
 		t.Fatalf("Could not create snapshot, err %v", err)
 	}

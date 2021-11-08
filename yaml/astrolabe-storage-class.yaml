@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: astrolabe-storage-class
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+parameters:
+  StoragePolicyName: "vSAN Default Storage Policy"
+  # DatastoreURL: "ds:///vmfs/volumes/vsan:52cdfa80721ff516-ea1e993113acfc77/" # Optional Parameter
+provisioner: csi.vsphere.vmware.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+

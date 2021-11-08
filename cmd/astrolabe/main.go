@@ -12,12 +12,12 @@ import (
 	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
 	"github.com/vmware-tanzu/astrolabe/pkg/s3repository"
 	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
+	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	"strings"
 
 	// restClient is the underlying REST/Swagger client
 	restClient "github.com/vmware-tanzu/astrolabe/gen/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
-	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	// astrolabeClient is the Astrolabe API on top of the REST client
 	astrolabeClient "github.com/vmware-tanzu/astrolabe/pkg/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/server"

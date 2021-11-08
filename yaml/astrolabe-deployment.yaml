@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: astrolabe
+spec:
+  type: NodePort
+  ports:
+    - name: astrolabe-port
+      port: 1323
+      protocol: TCP
+      nodePort: 31323
+    - name: astrolabe-minio-http
+      port: 9000
+      protocol: TCP
+      nodePort: 30900
+  selector:
+    app: astrolabe-server
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: astrolabe-repo
+spec:
+  storageClassName: astrolabe-storage-class
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: astrolabe-server
+  name: astrolabe-server
+spec:
+  containers:
+  - name: astrolabe-server
+    image: dsmithuchida/astrolabe_server:
+    volumeMounts:
+    - name: astrolabe-pes
+      mountPath: /etc/astrolabe_conf/pes
+    - name: astrolabe-conf
+      mountPath: /etc/astrolabe_conf
+    - name: astrolabe-repo
+      mountPath: /astrolabe-repo
+    ports:
+    - containerPort: 1323
+      name: client
+      protocol: TCP
+  - name: astrolabe-minio
+    image: dsmithuchida/astrolabe_minio:
+    volumeMounts:
+    - name: astrolabe-pes
+      mountPath: /etc/astrolabe_conf/pes
+    - name: astrolabe-conf
+      mountPath: /etc/astrolabe_conf
+    - name: astrolabe-repo
+      mountPath: /astrolabe-repo
+    ports:
+    - containerPort: 9000
+      name: minio
+      protocol: TCP
+  volumes:
+    - name: astrolabe-pes
+      configMap:
+        name: astrolabe-pes
+    - name: astrolabe-conf
+      configMap:
+        name: astrolabe-conf
+    - name: astrolabe-repo
+      persistentVolumeClaim:
+        claimName: astrolabe-repo
+  imagePullSecrets:
+  - name: regcred
+  serviceAccountName: astrolabe-service-account
+  restartPolicy: Always

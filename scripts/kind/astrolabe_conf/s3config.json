@@ -1,0 +1,8 @@
+{
+	"host":"",
+	"port":30900,
+	"accessKey":"accesskey",
+	"secret":"secretkey",
+	"http":true,
+	"region":"astrolabe"
+}

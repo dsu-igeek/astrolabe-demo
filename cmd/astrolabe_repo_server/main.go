@@ -17,10 +17,10 @@
 package main
 
 import (
-	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
 	"github.com/vmware-tanzu/astrolabe/pkg/server"
 	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
+	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 )
 
 func main() {
