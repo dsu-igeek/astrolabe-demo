@@ -8,6 +8,7 @@ require (
 	github.com/vmware-tanzu/astrolabe-velero v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/velero-plugin-for-aws v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/velero-plugin-for-vsphere v1.2.1 // indirect
+	k8s.io/kubernetes v1.15.0-alpha.0 // indirect
 )
 
 replace github.com/vmware-tanzu/astrolabe => ../../../../vmware-tanzu/astrolabe
