@@ -1,0 +1,15 @@
+domain: astrolabe.io
+layout:
+- go.kubebuilder.io/v3
+projectName: astrolabe-controller
+repo: github.com/dsui-geek/astrolabe-demo
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: astrolabe.io
+  kind: FileSystemSnapshot
+  path: github.com/dsui-geek/astrolabe-demo/api/v1
+  version: v1
+version: "3"

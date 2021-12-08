@@ -1,0 +1,24 @@
+# permissions for end users to edit filesystemsnapshots.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filesystemsnapshot-editor-role
+rules:
+- apiGroups:
+  - astrolabe.io
+  resources:
+  - filesystemsnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - astrolabe.io
+  resources:
+  - filesystemsnapshots/status
+  verbs:
+  - get

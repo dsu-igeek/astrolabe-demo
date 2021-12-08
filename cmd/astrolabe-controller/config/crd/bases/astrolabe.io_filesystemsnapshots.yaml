@@ -1,0 +1,126 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: filesystemsnapshots.astrolabe.io
+spec:
+  group: astrolabe.io
+  names:
+    kind: FileSystemSnapshot
+    listKind: FileSystemSnapshotList
+    plural: filesystemsnapshots
+    singular: filesystemsnapshot
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: FileSystemSnapshot is the Schema for the FilesystemSnapshots
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: FileSystemSnapshotSpec defines the desired state of FileSystemSnapshot
+            properties:
+              deletionPolicy:
+                description: deletionPolicy determines whether this FileSystemSnapshotContent
+                  and its physical snapshot on the underlying storage system should
+                  be deleted when its bound FileSystemSnapshot is deleted. Supported
+                  values are "Retain" and "Delete". "Retain" means that the FileSystemSnapshotContent
+                  and its physical snapshot on underlying storage system are kept.
+                  "Delete" means that the FileSystemSnapshotContent and its physical
+                  snapshot on underlying storage system are deleted. For dynamically
+                  provisioned snapshots, this field will automatically be filled in
+                  by the CSI snapshotter sidecar with the "DeletionPolicy" field defined
+                  in the corresponding FileSystemSnapshotClass. For pre-existing snapshots,
+                  users MUST specify this field when creating the  FileSystemSnapshotContent
+                  object. Required.
+                enum:
+                - Delete
+                - Retain
+                type: string
+              source:
+                description: source specifies where a snapshot will be created from.
+                  This field is immutable after creation. Required.
+                properties:
+                  name:
+                    description: Name specifies the name of an astrolabe compatible
+                      object from which a snapshot should be created. This field is
+                      immutable.
+                    properties:
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                    type: object
+                  peid:
+                    description: PEID is the ID for the FileSystem ProtectedEntity
+                      from which a snapshot should be created. This field is immutable.
+                    type: string
+                type: object
+            required:
+            - deletionPolicy
+            - source
+            type: object
+          status:
+            description: FileSystemSnapshotStatus defines the observed state of FileSystemSnapshot
+            properties:
+              error:
+                description: Error is the last observed error during snapshot creation,
+                  if any. This field could be helpful to upper level controllers(i.e.,
+                  application controller) to decide whether they should continue on
+                  waiting for the snapshot to be created based on the type of error
+                  reported. The snapshot controller will keep retrying when an error
+                  occurrs during the snapshot creation. Upon success, this error field
+                  will be cleared.
+                properties:
+                  message:
+                    description: 'message is a string detailing the encountered error
+                      during snapshot creation if specified. NOTE: message may be
+                      logged, and it should not contain sensitive information.'
+                    type: string
+                  time:
+                    description: time is the timestamp when the error was encountered.
+                    format: date-time
+                    type: string
+                type: object
+              readyToUse:
+                description: ReadyToUse indicates if the snapshot is ready to be used
+                  to restore a volume. In dynamic snapshot creation case, this field
+                  will be filled in by the snapshot controller with the "ready_to_use"
+                  value returned from CSI "CreateSnapshot" gRPC call. For a pre-existing
+                  snapshot, this field will be filled with the "ready_to_use" value
+                  returned from the CSI "ListSnapshots" gRPC call if the driver supports
+                  it, otherwise, this field will be set to "True". If not specified,
+                  it means the readiness of a snapshot is unknown.
+                type: boolean
+              snapshotID:
+                description: SnapshotID is the Snapshot ID for the Protected Entity
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

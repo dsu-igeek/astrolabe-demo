@@ -1,0 +1,6 @@
+apiVersion: astrolabe.io/v1
+kind: FileSystemSnapshot
+metadata:
+  name: filesystemsnapshot-sample
+spec:
+  # TODO(user): Add fields here

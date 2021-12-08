@@ -1,0 +1,20 @@
+# permissions for end users to view filesystemsnapshots.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filesystemsnapshot-viewer-role
+rules:
+- apiGroups:
+  - astrolabe.io
+  resources:
+  - filesystemsnapshots
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - astrolabe.io
+  resources:
+  - filesystemsnapshots/status
+  verbs:
+  - get
