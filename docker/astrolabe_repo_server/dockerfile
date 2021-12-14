@@ -1,0 +1,7 @@
+FROM ubuntu:21.04
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates 
+COPY bin/astrolabe_repo_server /bin
+COPY overrides /
+ENV LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64
+
+ENTRYPOINT ["/bin/astrolabe_repo_server", "--confDir", "/etc/astrolabe_conf", "--insecure"]

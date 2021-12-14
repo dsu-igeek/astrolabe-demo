@@ -1,0 +1,17 @@
+# Using shepherd with cloudgate
+
+Cloudgate is used internally inside of VMware to provision AWS and Azure accounts.
+Currently AWS is used for the astrolabe demos.
+To use shepherd you will need a Cloudgate account and then you will need to configure
+a shepherd account group and account.  Use the setup-cloudgate-shepherd.sh script
+to set these up.  You will need the following info:
+
+* account_group name - The name of the account group to create
+* Cloudgate API Client ID - get this by creating a cloudgate API client (goto "My Account" and select API Clients tab)
+* Cloudgate API Client Secret - get this by creating a Cloudgate API client
+* Organizational Unit ID - From the Cloudgate portal, pick the organization you want 
+to use and the organizational ID will be in the Account Type line 
+(Account Type: Organization Unit (---OU ID---)
+* Account ID - The Account ID for the account you want to use
+* Master Account ID - The account ID for the organization you want to use
+* AWS Region - the AWS region you want to use
