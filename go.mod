@@ -7,13 +7,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/astrolabe v0.3.0
-	github.com/vmware-tanzu/velero v0.0.0-00010101000000-000000000000 // indirect
-	github.com/zalando/postgres-operator v1.6.0
-	k8s.io/api v0.19.7 // indirect
-	k8s.io/apimachinery v0.19.7
-	k8s.io/client-go v0.19.7
+	github.com/zalando/postgres-operator v1.6.3
+	k8s.io/apimachinery v0.20.6
+	k8s.io/client-go v0.20.6
 )
 
 replace github.com/vmware-tanzu/astrolabe => ../../vmware-tanzu/astrolabe
-
-replace github.com/vmware-tanzu/velero => ../../vmware-tanzu/velero
