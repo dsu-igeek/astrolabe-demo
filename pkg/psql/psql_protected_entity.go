@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os/exec"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
-	"io"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os/exec"
 )
 
 type PSQLProtectedEntity struct {
@@ -76,7 +77,7 @@ func (this PSQLProtectedEntity) GetCombinedInfo(ctx context.Context) ([]astrolab
 	panic("implement me")
 }
 
-func (this PSQLProtectedEntity) Snapshot(ctx context.Context, params map[string]map[string]interface {}) (astrolabe.ProtectedEntitySnapshotID, error) {
+func (this PSQLProtectedEntity) Snapshot(ctx context.Context, params map[string]map[string]interface{}) (astrolabe.ProtectedEntitySnapshotID, error) {
 	if this.id.HasSnapshot() {
 		return astrolabe.ProtectedEntitySnapshotID{}, errors.New(fmt.Sprintf("pe %s is a snapshot, cannot snapshot again", this.id.String()))
 	}
@@ -85,7 +86,6 @@ func (this PSQLProtectedEntity) Snapshot(ctx context.Context, params map[string]
 		return astrolabe.ProtectedEntitySnapshotID{}, errors.Wrap(err, "Failed to create new UUID")
 	}
 	snapshotID := astrolabe.NewProtectedEntitySnapshotID(snapshotUUID.String())
-
 
 	err = this.petm.internalRepo.WriteProtectedEntity(ctx, this, snapshotID)
 	if err != nil {
@@ -103,7 +103,7 @@ func (this PSQLProtectedEntity) ListSnapshots(ctx context.Context) ([]astrolabe.
 }
 
 func (this PSQLProtectedEntity) DeleteSnapshot(ctx context.Context, snapshotToDelete astrolabe.ProtectedEntitySnapshotID,
-	params map[string]map[string]interface {}) (bool, error) {
+	params map[string]map[string]interface{}) (bool, error) {
 	panic("implement me")
 }
 
@@ -139,9 +139,9 @@ func (this PSQLProtectedEntity) GetDataReader(ctx context.Context) (io.ReadClose
 			return nil, errors.Wrap(err, "could not create UUID")
 		}
 		podName := "snapshot-pg-" + dumpUUID.String()
-		cmd := exec.Command("/usr/bin/kubectl", "run", "-n", namespace, podName, "--image=dpcpinternal/pg-dump:0.0.5",
-			"--env", "PGPASSWORD=" + pgpassword, "--env",
-			"PGHOST=" + pghost, "--env", "PGUSER=" +pguser, "-it", "--restart=Never", "--rm")
+		cmd := exec.Command("/usr/local/bin/kubectl", "run", "-n", namespace, podName, "--image=dpcpinternal/pg-dump:0.0.6",
+			"--env", "PGPASSWORD="+pgpassword, "--env",
+			"PGHOST="+pghost, "--env", "PGUSER="+pguser, "-it", "--restart=Never", "--rm")
 		fmt.Printf("Executing command %v", cmd)
 		cmdStdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -170,6 +170,6 @@ func (this PSQLProtectedEntity) GetMetadataReader(ctx context.Context) (io.ReadC
 }
 
 func (this PSQLProtectedEntity) Overwrite(ctx context.Context, sourcePE astrolabe.ProtectedEntity, params map[string]map[string]interface{},
-overwriteComponents bool) error {
+	overwriteComponents bool) error {
 	panic("implement me")
 }
