@@ -33,7 +33,7 @@ import (
 	astrolabeiov1 "github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller/api/v1"
 )
 
-// PSQLSnapshotReconciler reconciles a FileSystemSnapshot object
+// PSQLSnapshotReconciler reconciles a PSQLSnapshot object
 type PSQLSnapshotReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
@@ -41,29 +41,29 @@ type PSQLSnapshotReconciler struct {
 	Pem astrolabe.ProtectedEntityManager
 }
 
-const fsSnapshotFinalizer = "astrolabe.io/finalizer"
+const psqlSnapshotFinalizer = "astrolabe.io/psql-finalizer"
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
-//+kubebuilder:rbac:groups=astrolabe.io,resources=filesystemsnapshots,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=astrolabe.io,resources=filesystemsnapshots/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=astrolabe.io,resources=filesystemsnapshots/finalizers,verbs=update
+//+kubebuilder:rbac:groups=astrolabe.io,resources=psqlsnapshots,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=astrolabe.io,resources=psqlsnapshots/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=astrolabe.io,resources=psqlsnapshots/finalizers,verbs=update
 func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	logger.Info("Getting FileSystemSnapshot")
-	fsSnapshot := &astrolabeiov1.FileSystemSnapshot{}
-	if err := r.Client.Get(ctx, req.NamespacedName, fsSnapshot); err != nil {
-		logger.Info("Unable to find FileSystemSnapshot - likely deleted")
+	logger.Info("Getting PSQLSnapshot")
+	snapshot := &astrolabeiov1.PSQLSnapshot{}
+	if err := r.Client.Get(ctx, req.NamespacedName, snapshot); err != nil {
+		logger.Info("Unable to find PSQLSnapshot - likely deleted")
 		// TODO: Call through to deletion of snapshot if the DeletionPolicy allows for it
 		// Do we have access to the object at this point to be able to delete?
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	patcher, err := patch.NewHelper(fsSnapshot, r.Client)
+	patcher, err := patch.NewHelper(snapshot, r.Client)
 	if err != nil {
 		logger.Error(err, "unable to initialize patch helper")
 		return ctrl.Result{}, err
@@ -71,32 +71,32 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	defer func() {
 		// Always attempt to Patch the object and status after each reconciliation.
-		if err := patcher.Patch(ctx, fsSnapshot); err != nil {
+		if err := patcher.Patch(ctx, snapshot); err != nil {
 			logger.Error(err, "Error updating FS Snapshot")
 			return
 		}
 	}()
 
-	if fsSnapshot.ObjectMeta.DeletionTimestamp.IsZero() {
+	if snapshot.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is not being deleted, so if it does not have our finalizer,
 		// then lets add the finalizer and update the object. This is equivalent
 		// registering our finalizer.
-		if !containsString(fsSnapshot.GetFinalizers(), fsSnapshotFinalizer) {
-			controllerutil.AddFinalizer(fsSnapshot, fsSnapshotFinalizer)
+		if !containsString(snapshot.GetFinalizers(), psqlSnapshotFinalizer) {
+			controllerutil.AddFinalizer(snapshot, psqlSnapshotFinalizer)
 		}
 	} else {
 		// The object is being deleted
-		if containsString(fsSnapshot.GetFinalizers(), fsSnapshotFinalizer) {
+		if containsString(snapshot.GetFinalizers(), psqlSnapshotFinalizer) {
 			// our finalizer is present, so lets handle any external dependency
 			// TODO need to fetch the PE here to be able to delete the snapshot
-			if err := r.deleteSnapshot(fsSnapshot); err != nil {
+			if err := r.deleteSnapshot(snapshot); err != nil {
 				// if fail to delete the external dependency here, return with error
 				// so that it can be retried
 				return ctrl.Result{}, err
 			}
 
 			// remove our finalizer from the list and update it.
-			controllerutil.RemoveFinalizer(fsSnapshot, fsSnapshotFinalizer)
+			controllerutil.RemoveFinalizer(snapshot, psqlSnapshotFinalizer)
 		}
 
 		// Stop reconciliation as the item is being deleted
@@ -104,11 +104,11 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check for the status, if empty, start snapshot
-	if fsSnapshot.Status == (astrolabeiov1.FileSystemSnapshotStatus{}) {
+	if snapshot.Status == (astrolabeiov1.PSQLSnapshotStatus{}) {
 		var peIDstr string
-		if fsSnapshot.Spec.Source.PEID != nil {
-			peIDstr = *fsSnapshot.Spec.Source.PEID
-		} else if fsSnapshot.Spec.Source.Name != (corev1.LocalObjectReference{}) {
+		if snapshot.Spec.Source.PEID != nil {
+			peIDstr = *snapshot.Spec.Source.PEID
+		} else if snapshot.Spec.Source.Name != (corev1.LocalObjectReference{}) {
 			return ctrl.Result{Requeue: false}, fmt.Errorf("unsupported source")
 		} else {
 			return ctrl.Result{Requeue: false}, fmt.Errorf("spec.peid field missing")
@@ -119,8 +119,8 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err != nil {
 			logger.Error(err, "Error getting ProtectedEntity")
 			errTime := metav1.Now()
-			errMessage := fmt.Sprintf("error getting FileSystem Protected Entity %q: %v", protectedEntityID, err)
-			fsSnapshot.Status.Error = &astrolabeiov1.FileSystemSnapshotError{
+			errMessage := fmt.Sprintf("error getting PSQL Protected Entity %q: %v", protectedEntityID, err)
+			snapshot.Status.Error = &astrolabeiov1.PSQLSnapshotError{
 				Time:    &errTime,
 				Message: &errMessage,
 			}
@@ -134,8 +134,8 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err != nil {
 			logger.Error(err, "Creating ProtectedEntity snapshot")
 			errTime := metav1.Now()
-			errMessage := fmt.Sprintf("error snapshotting FileSystem Protected Entity %q: %v", protectedEntityID, err)
-			fsSnapshot.Status.Error = &astrolabeiov1.FileSystemSnapshotError{
+			errMessage := fmt.Sprintf("error snapshotting PSQL Protected Entity %q: %v", protectedEntityID, err)
+			snapshot.Status.Error = &astrolabeiov1.PSQLSnapshotError{
 				Time:    &errTime,
 				Message: &errMessage,
 			}
@@ -144,8 +144,8 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			snapshotIDStr := snapshotID.String()
 			logger.Info("updating the status")
 			readyToUse := true
-			fsSnapshot.Status.SnapshotID = &snapshotIDStr
-			fsSnapshot.Status.ReadyToUse = &readyToUse
+			snapshot.Status.SnapshotID = &snapshotIDStr
+			snapshot.Status.ReadyToUse = &readyToUse
 		}
 	} else {
 		// We have already done a reconciliation of this object, need to check the status and update accordingly
@@ -157,12 +157,12 @@ func (r *PSQLSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request
 // SetupWithManager sets up the controller with the Manager.
 func (r *PSQLSnapshotReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&astrolabeiov1.FileSystemSnapshot{}).
+		For(&astrolabeiov1.PSQLSnapshot{}).
 		Complete(r)
 }
 
 // deleteSnapshot deletes the given snapshot
-func (r *PSQLSnapshotReconciler) deleteSnapshot(s *astrolabeiov1.FileSystemSnapshot) error {
+func (r *PSQLSnapshotReconciler) deleteSnapshot(s *astrolabeiov1.PSQLSnapshot) error {
 	return nil
 }
 

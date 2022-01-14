@@ -108,7 +108,7 @@ func main() {
 		Scheme: mgr.GetScheme(),
 		Pem:    pem,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "FileSystemSnapshot")
+		setupLog.Error(err, "unable to create controller", "controller", "PSQLSnapshot")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

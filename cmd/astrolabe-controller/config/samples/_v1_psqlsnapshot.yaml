@@ -1,6 +1,6 @@
 apiVersion: astrolabe.io/v1
-kind: FileSystemSnapshot
+kind: PSQLSnapshot
 metadata:
-  name: filesystemsnapshot-sample
+  name: psqlsnapshot-sample
 spec:
   # TODO(user): Add fields here

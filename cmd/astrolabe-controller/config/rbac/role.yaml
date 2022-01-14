@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - astrolabe.io
   resources:
-  - filesystemsnapshots
+  - psqlsnapshot
   verbs:
   - create
   - delete
@@ -21,13 +21,13 @@ rules:
 - apiGroups:
   - astrolabe.io
   resources:
-  - filesystemsnapshots/finalizers
+  - psqlsnapshots/finalizers
   verbs:
   - update
 - apiGroups:
   - astrolabe.io
   resources:
-  - filesystemsnapshots/status
+  - psqlsnapshots/status
   verbs:
   - get
   - patch

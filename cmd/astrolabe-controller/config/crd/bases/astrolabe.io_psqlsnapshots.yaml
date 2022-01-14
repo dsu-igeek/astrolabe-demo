@@ -6,21 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
-  name: filesystemsnapshots.astrolabe.io
+  name: psqlsnapshots.astrolabe.io
 spec:
   group: astrolabe.io
   names:
-    kind: FileSystemSnapshot
-    listKind: FileSystemSnapshotList
-    plural: filesystemsnapshots
-    singular: filesystemsnapshot
+    kind: PSQLSnapshot
+    listKind: PSQLSnapshotList
+    plural: psqlsnapshots
+    singular: psqlsnapshot
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: FileSystemSnapshot is the Schema for the FilesystemSnapshots
-          API
+        description: PSQLSnapshot is the Schema for the PSQLSnapshots API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -35,21 +34,21 @@ spec:
           metadata:
             type: object
           spec:
-            description: FileSystemSnapshotSpec defines the desired state of FileSystemSnapshot
+            description: PSQLSnapshotSpec defines the desired state of PSQLSnapshot
             properties:
               deletionPolicy:
-                description: deletionPolicy determines whether this FileSystemSnapshotContent
+                description: deletionPolicy determines whether this PSQLSnapshotContent
                   and its physical snapshot on the underlying storage system should
-                  be deleted when its bound FileSystemSnapshot is deleted. Supported
-                  values are "Retain" and "Delete". "Retain" means that the FileSystemSnapshotContent
+                  be deleted when its bound PSQLSnapshot is deleted. Supported values
+                  are "Retain" and "Delete". "Retain" means that the PSQLSnapshotContent
                   and its physical snapshot on underlying storage system are kept.
-                  "Delete" means that the FileSystemSnapshotContent and its physical
-                  snapshot on underlying storage system are deleted. For dynamically
-                  provisioned snapshots, this field will automatically be filled in
-                  by the CSI snapshotter sidecar with the "DeletionPolicy" field defined
-                  in the corresponding FileSystemSnapshotClass. For pre-existing snapshots,
-                  users MUST specify this field when creating the  FileSystemSnapshotContent
-                  object. Required.
+                  "Delete" means that the PSQLSnapshotContent and its physical snapshot
+                  on underlying storage system are deleted. For dynamically provisioned
+                  snapshots, this field will automatically be filled in by the CSI
+                  snapshotter sidecar with the "DeletionPolicy" field defined in the
+                  corresponding PSQLSnapshotClass. For pre-existing snapshots, users
+                  MUST specify this field when creating the  PSQLSnapshotContent object.
+                  Required.
                 enum:
                 - Delete
                 - Retain
@@ -69,8 +68,8 @@ spec:
                         type: string
                     type: object
                   peid:
-                    description: PEID is the ID for the FileSystem ProtectedEntity
-                      from which a snapshot should be created. This field is immutable.
+                    description: PEID is the ID for the PSQL ProtectedEntity from
+                      which a snapshot should be created. This field is immutable.
                     type: string
                 type: object
             required:
@@ -78,7 +77,7 @@ spec:
             - source
             type: object
           status:
-            description: FileSystemSnapshotStatus defines the observed state of FileSystemSnapshot
+            description: PSQLSnapshotStatus defines the observed state of PSQLSnapshot
             properties:
               error:
                 description: Error is the last observed error during snapshot creation,

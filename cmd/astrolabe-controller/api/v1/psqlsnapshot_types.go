@@ -24,62 +24,62 @@ import (
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// FileSystemSnapshot is the Schema for the FilesystemSnapshots API
-type FileSystemSnapshot struct {
+// PSQLSnapshot is the Schema for the PSQLSnapshots API
+type PSQLSnapshot struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec FileSystemSnapshotSpec `json:"spec,omitempty" protobuf:"bytes,name=spec"`
+	Spec PSQLSnapshotSpec `json:"spec,omitempty" protobuf:"bytes,name=spec"`
 
-	Status FileSystemSnapshotStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Status PSQLSnapshotStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 //+kubebuilder:object:root=true
 
-// FileSystemSnapshotList contains a list of FileSystemSnapshot
-type FileSystemSnapshotList struct {
+// PSQLSnapshotList contains a list of PSQLSnapshot
+type PSQLSnapshotList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []FileSystemSnapshot `json:"items"`
+	Items           []PSQLSnapshot `json:"items"`
 }
 
-// FileSystemSnapshotSpec defines the desired state of FileSystemSnapshot
-type FileSystemSnapshotSpec struct {
+// PSQLSnapshotSpec defines the desired state of PSQLSnapshot
+type PSQLSnapshotSpec struct {
 	// source specifies where a snapshot will be created from.
 	// This field is immutable after creation.
 	// Required.
-	Source FileSystemSnapshotSource `json:"source" protobuf:"bytes,1,opt,name=source"`
+	Source PSQLSnapshotSource `json:"source" protobuf:"bytes,1,opt,name=source"`
 
-	// deletionPolicy determines whether this FileSystemSnapshotContent and its physical snapshot on
-	// the underlying storage system should be deleted when its bound FileSystemSnapshot is deleted.
+	// deletionPolicy determines whether this PSQLSnapshotContent and its physical snapshot on
+	// the underlying storage system should be deleted when its bound PSQLSnapshot is deleted.
 	// Supported values are "Retain" and "Delete".
-	// "Retain" means that the FileSystemSnapshotContent and its physical snapshot on underlying storage system are kept.
-	// "Delete" means that the FileSystemSnapshotContent and its physical snapshot on underlying storage system are deleted.
+	// "Retain" means that the PSQLSnapshotContent and its physical snapshot on underlying storage system are kept.
+	// "Delete" means that the PSQLSnapshotContent and its physical snapshot on underlying storage system are deleted.
 	// For dynamically provisioned snapshots, this field will automatically be filled in by the
 	// CSI snapshotter sidecar with the "DeletionPolicy" field defined in the corresponding
-	// FileSystemSnapshotClass.
+	// PSQLSnapshotClass.
 	// For pre-existing snapshots, users MUST specify this field when creating the
-	//  FileSystemSnapshotContent object.
+	//  PSQLSnapshotContent object.
 	// Required.
 	DeletionPolicy DeletionPolicy `json:"deletionPolicy"`
 }
 
-// FileSystemSnapshotSource represents the source that should be used to take the snapshot
+// PSQLSnapshotSource represents the source that should be used to take the snapshot
 // Can reference an object of the type in the namespace or a ProtectedEntity ID
-type FileSystemSnapshotSource struct {
+type PSQLSnapshotSource struct {
 	// Name specifies the name of an astrolabe compatible object from which a snapshot should be created.
 	// This field is immutable.
 	// +optional
 	Name corev1.LocalObjectReference `json:"name,omitempty" protobuf:"bytes,2,opt,name=name"`
 
-	// PEID is the ID for the FileSystem ProtectedEntity from which a snapshot should be created.
+	// PEID is the ID for the PSQL ProtectedEntity from which a snapshot should be created.
 	// This field is immutable.
 	// +optional
 	PEID *string `json:"peid" protobuf:"bytes,1,name=peid"`
 }
 
-// FileSystemSnapshotStatus defines the observed state of FileSystemSnapshot
-type FileSystemSnapshotStatus struct {
+// PSQLSnapshotStatus defines the observed state of PSQLSnapshot
+type PSQLSnapshotStatus struct {
 	// SnapshotID is the Snapshot ID for the Protected Entity
 	SnapshotID *string `json:"snapshotID,omitempty" protobuf:"bytes,1,opt,name=snapshotID"`
 
@@ -127,7 +127,7 @@ type FileSystemSnapshotStatus struct {
 	// The snapshot controller will keep retrying when an error occurrs during the
 	// snapshot creation. Upon success, this error field will be cleared.
 	// +optional
-	Error *FileSystemSnapshotError `json:"error,omitempty" protobuf:"bytes,3,opt,name=error,casttype=FileSystemSnapshotError"`
+	Error *PSQLSnapshotError `json:"error,omitempty" protobuf:"bytes,3,opt,name=error,casttype=PSQLSnapshotError"`
 }
 
 // DeletionPolicy describes a policy for end-of-life maintenance of volume snapshot contents
@@ -135,17 +135,17 @@ type FileSystemSnapshotStatus struct {
 type DeletionPolicy string
 
 const (
-	// FileSystemSnapshotContentDelete means the snapshot will be deleted from the
-	// underlying storage system on release from its FileSystem snapshot.
-	FileSystemSnapshotContentDelete DeletionPolicy = "Delete"
+	// PSQLSnapshotContentDelete means the snapshot will be deleted from the
+	// underlying storage system on release from its PSQL snapshot.
+	PSQLSnapshotContentDelete DeletionPolicy = "Delete"
 
-	// FileSystemSnapshotContentRetain means the snapshot will be left in its current
-	// state on release from its FileSystem snapshot.
-	FileSystemSnapshotContentRetain DeletionPolicy = "Retain"
+	// PSQLSnapshotContentRetain means the snapshot will be left in its current
+	// state on release from its PSQL snapshot.
+	PSQLSnapshotContentRetain DeletionPolicy = "Retain"
 )
 
-// FileSystemSnapshotError describes an error encountered during snapshot creation.
-type FileSystemSnapshotError struct {
+// PSQLSnapshotError describes an error encountered during snapshot creation.
+type PSQLSnapshotError struct {
 	// time is the timestamp when the error was encountered.
 	// +optional
 	Time *metav1.Time `json:"time,omitempty"`
@@ -159,5 +159,5 @@ type FileSystemSnapshotError struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&FileSystemSnapshot{}, &FileSystemSnapshotList{})
+	SchemeBuilder.Register(&PSQLSnapshot{}, &PSQLSnapshotList{})
 }

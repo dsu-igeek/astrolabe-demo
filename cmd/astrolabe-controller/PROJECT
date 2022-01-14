@@ -9,7 +9,7 @@ resources:
     namespaced: true
   controller: true
   domain: astrolabe.io
-  kind: FileSystemSnapshot
+  kind: PSQLSnapshot
   path: github.com/dsui-geek/astrolabe-demo/api/v1
   version: v1
 version: "3"
