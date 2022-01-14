@@ -127,7 +127,8 @@ func (this PSQLProtectedEntity) GetDataReader(ctx context.Context) (io.ReadClose
 		}
 		namespace := psql.Namespace
 		pghost := psql.ObjectMeta.Name
-		pgsecret, err := this.petm.KubeClient.Secrets(namespace).Get(ctx, "postgres."+pghost+".credentials", metav1.GetOptions{})
+		// TODO(bridget): Revisit how the secret names are formed. The secret name is different in the newest version
+		pgsecret, err := this.petm.KubeClient.Secrets(namespace).Get(ctx, "postgres."+pghost+".credentials.postgresql.acid.zalan.do", metav1.GetOptions{})
 		if err != nil {
 			return nil, errors.Wrap(err, "could not retrieve secret")
 		}
@@ -139,9 +140,10 @@ func (this PSQLProtectedEntity) GetDataReader(ctx context.Context) (io.ReadClose
 			return nil, errors.Wrap(err, "could not create UUID")
 		}
 		podName := "snapshot-pg-" + dumpUUID.String()
-		cmd := exec.Command("/usr/local/bin/kubectl", "run", "-n", namespace, podName, "--image=dpcpinternal/pg-dump:0.0.6",
-			"--env", "PGPASSWORD="+pgpassword, "--env",
-			"PGHOST="+pghost, "--env", "PGUSER="+pguser, "-it", "--restart=Never", "--rm")
+		// TODO(bridget): Using a different image due to a server client mismatch
+		// Should the same image as the operator be used?
+		cmd := exec.Command("/usr/local/bin/kubectl", "run", "-n", namespace, podName, "--image=registry.opensource.zalan.do/acid/spilo-14:2.1-p3",
+			"--env", "PGPASSWORD="+pgpassword, "-it", "-q", "--restart=Never", "--rm", "--", "pg_dumpall", "-U", pguser, "-h", pghost)
 		fmt.Printf("Executing command %v", cmd)
 		cmdStdout, err := cmd.StdoutPipe()
 		if err != nil {
