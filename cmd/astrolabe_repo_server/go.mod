@@ -11,7 +11,6 @@ require (
 	github.com/vmware-tanzu/astrolabe v0.8.1
 	github.com/vmware-tanzu/astrolabe-velero v0.0.0-00010101000000-000000000000
 	github.com/vmware-tanzu/velero-plugin-for-aws v0.0.0-00010101000000-000000000000
-	github.com/vmware-tanzu/velero-plugin-for-vsphere v0.0.0-00010101000000-000000000000 // indirect
 )
 
 replace github.com/vmware-tanzu/astrolabe => ../../../../vmware-tanzu/astrolabe
