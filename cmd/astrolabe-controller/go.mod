@@ -8,7 +8,6 @@ require (
 	github.com/onsi/gomega v1.16.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/astrolabe v0.4.1-0.20210813185044-12eb18c3f6d5
-	github.com/vmware-tanzu/astrolabe-velero v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v0.22.4

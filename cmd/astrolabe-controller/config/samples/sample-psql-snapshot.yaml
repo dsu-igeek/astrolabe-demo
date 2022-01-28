@@ -1,0 +1,9 @@
+apiVersion: astrolabe.io/v1
+kind: PSQLSnapshot
+metadata:
+  name: sample-psql-snapshot
+  namespace: astrolabe
+spec:
+  source:
+    peid: acid-minimal-cluster
+  deletionPolicy: Delete

@@ -10,10 +10,6 @@ spec:
       port: 1323
       protocol: TCP
       nodePort: 31323
-    - name: delve-port
-      port: 2345
-      protocol: TCP
-      nodePort: 32345
     - name: astrolabe-minio-http
       port: 9000
       protocol: TCP
@@ -68,6 +64,18 @@ spec:
     - containerPort: 1323
       name: client
       protocol: TCP
+  - name: astrolabe-controller
+    image: zubron/astrolabe-controller:demo
+    volumeMounts:
+    - name: astrolabe-pes
+      mountPath: /etc/astrolabe_conf/pes
+    - name: astrolabe-conf
+      mountPath: /etc/astrolabe_conf
+    - name: astrolabe-repo
+      mountPath: /astrolabe-repo
+    - name: fs-root
+      mountPath: /fs_root
+    ports:
     - containerPort: 2345
       name: delve
       protocol: TCP

@@ -18,9 +18,10 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
-	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -33,12 +34,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
+
 	astrolabeiov1 "github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller/api/v1"
 	"github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller/controllers"
-	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
+
 	//+kubebuilder:scaffold:imports
 
-	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
 	"github.com/vmware-tanzu/astrolabe/pkg/fs"
 	"github.com/vmware-tanzu/astrolabe/pkg/server"
 )
@@ -57,7 +59,6 @@ func init() {
 
 func configurePEM(confDir string) (astrolabe.ProtectedEntityManager, error) {
 	addOnInits := make(map[string]server.InitFunc)
-	addOnInits["k8sns"] = kubernetes.NewKubernetesNamespaceProtectedEntityTypeManagerFromConfig
 	addOnInits["fss"] = fs.NewFSProtectedEntityTypeManagerFromConfig
 	addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
 
@@ -109,6 +110,14 @@ func main() {
 		Pem:    pem,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PSQLSnapshot")
+		os.Exit(1)
+	}
+	if err = (&controllers.PSQLRestoreReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+		Pem:    pem,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PSQLRestore")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

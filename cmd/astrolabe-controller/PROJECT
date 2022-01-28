@@ -2,7 +2,7 @@ domain: astrolabe.io
 layout:
 - go.kubebuilder.io/v3
 projectName: astrolabe-controller
-repo: github.com/dsui-geek/astrolabe-demo
+repo: github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller
 resources:
 - api:
     crdVersion: v1
@@ -10,6 +10,14 @@ resources:
   controller: true
   domain: astrolabe.io
   kind: PSQLSnapshot
-  path: github.com/dsui-geek/astrolabe-demo/api/v1
+  path: github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller/api/v1
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: astrolabe.io
+  kind: PSQLRestore
+  path: github.com/dsu-igeek/astrolabe-demo/cmd/astrolabe-controller/api/v1
   version: v1
 version: "3"

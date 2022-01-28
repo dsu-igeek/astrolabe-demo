@@ -1,0 +1,9 @@
+apiVersion: astrolabe.io/v1
+kind: PSQLRestore
+metadata:
+  name: sample-fs-restore
+  namespace: astrolabe
+spec:
+  name: acid-minimal-cluster
+  source:
+    snapshotId: 8d5179a9-3a81-4e8c-b52f-508c6c807709

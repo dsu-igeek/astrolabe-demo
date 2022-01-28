@@ -1,0 +1,8 @@
+{
+	"host":"172.18.0.7",
+  "port":30900,
+	"accessKey":"accesskey",
+	"secret":"secretkey",
+	"region":"astrolabe",
+	"http":true
+}

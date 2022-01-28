@@ -101,7 +101,7 @@ func (this PSQLProtectedEntityTypeManager) getPostgresqlForPEID(ctx context.Cont
 		return v1.Postgresql{}, errors.Wrap(err, "could not retrieve psqls")
 	}
 	for _, curPSQL := range list {
-		if curPSQL.Name == id.GetID() {
+		if string(curPSQL.Name) == id.GetID() {
 			return curPSQL, nil
 		}
 	}
