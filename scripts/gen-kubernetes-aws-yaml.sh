@@ -6,3 +6,4 @@ mkdir -p yaml
 sed -e "s/latest/$2/" < $BASE/../k8s/astrolabe-server/astrolabe-deployment.yaml > ./yaml/astrolabe-deployment.yaml
 cp $BASE/../k8s/astrolabe-server/astrolabe-storage-class.aws.yaml ./yaml
 cp $BASE/../k8s/astrolabe-server/astrolabe-service-account.yaml ./yaml
+cp $BASE/../k8s/astrolabe-server/astrolabe-svc.aws.yaml ./yaml
