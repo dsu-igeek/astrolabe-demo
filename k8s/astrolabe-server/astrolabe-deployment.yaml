@@ -39,6 +39,19 @@ spec:
   containers:
   - name: astrolabe-server
     image: dsmithuchida/astrolabe_server:latest
+    env:
+      -name AWS_ACCESS_KEY_ID
+       valueFrom:
+         secretKeyRef:
+           name: aws-secret
+           key: aws_access_key_id
+           optional: false
+      -name AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: aws_secret_access_key
+            optional: false
     volumeMounts:
     - name: astrolabe-pes
       mountPath: /etc/astrolabe_conf/pes
@@ -52,6 +65,19 @@ spec:
       protocol: TCP
   - name: astrolabe-minio
     image: dsmithuchida/astrolabe_minio:latest
+    env:
+      -name AWS_ACCESS_KEY_ID
+       valueFrom:
+         secretKeyRef:
+           name: aws-secret
+           key: aws_access_key_id
+           optional: false
+      -name AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: aws_secret_access_key
+            optional: false
     volumeMounts:
     - name: astrolabe-pes
       mountPath: /etc/astrolabe_conf/pes

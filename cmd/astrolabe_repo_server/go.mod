@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/dsu-igeek/astrolabe-demo v0.0.0-00010101000000-000000000000
 	github.com/dsu-igeek/astrolabe-kopia v0.0.0-00010101000000-000000000000
-	github.com/go-openapi/loads v0.19.5
+	github.com/go-openapi/loads v0.21.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vmware-tanzu/astrolabe v0.8.1

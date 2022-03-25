@@ -6,8 +6,8 @@ mkdir -p ../../docker/astrolabe_server/bin
 cp astrolabe_server ../../docker/astrolabe_server/bin/astrolabe_server
 cd ../astrolabe_repo_server
 LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64 go build
-mkdir -p ../../dsu-igeek/astrolabe-demo/docker/astrolabe_repo_server/bin
-cp astrolabe_repo_server ../../dsu-igeek/astrolabe-demo/docker/astrolabe_repo_server/bin/astrolabe_repo_server
+mkdir -p ../../docker/astrolabe_repo_server/bin
+cp astrolabe_repo_server ../../docker/astrolabe_repo_server/bin/astrolabe_repo_server
 cd ../../../../minio/minio/
 LD_LIBRARY_PATH=/usr/local/vmware-vix-disklib-distrib/lib64 make
 mkdir -p ../../dsu-igeek/astrolabe-demo/docker/astrolabe_minio/bin

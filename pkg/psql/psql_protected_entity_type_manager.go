@@ -269,3 +269,8 @@ func (this PSQLProtectedEntityTypeManager) CopyFromInfo(ctx context.Context, inf
 func (this PSQLProtectedEntityTypeManager) Delete(ctx context.Context, id astrolabe.ProtectedEntityID) error {
 	panic("implement me")
 }
+
+func (this PSQLProtectedEntityTypeManager) GetCapabilities() map[string]string {
+	//TODO implement me
+	panic("implement me")
+}
