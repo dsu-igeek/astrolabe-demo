@@ -64,7 +64,7 @@ require (
 	github.com/go-openapi/errors v0.20.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
-	github.com/go-openapi/loads v0.21.0 // indirect
+	github.com/go-openapi/loads v0.21.0
 	github.com/go-openapi/runtime v0.21.0 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/strfmt v0.21.1 // indirect
@@ -154,3 +154,5 @@ replace github.com/dsu-igeek/astrolabe-kopia => ../astrolabe-kopia
 replace github.com/vmware-tanzu/astrolabe-velero => ../../vmware-tanzu/astrolabe-velero
 
 replace github.com/vmware-tanzu/velero-plugin-for-vsphere => ../../vmware-tanzu/velero-plugin-for-vsphere
+
+replace github.com/minio/minio => ../../minio/minio

@@ -1,5 +1,6 @@
 docker/astrolabe_minio/bin/minio
 docker/astrolabe_server/bin/astrolabe_server
 docker/astrolabe_repo_server/bin/astrolabe_repo_server
+docker_build
 .idea
 .aws
