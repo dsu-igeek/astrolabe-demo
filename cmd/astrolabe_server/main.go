@@ -17,14 +17,15 @@
 package main
 
 import (
-	"github.com/vmware-tanzu/astrolabe/pkg/server"
-	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
 	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
+	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
+	"github.com/vmware-tanzu/astrolabe/pkg/server"
+	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
 )
 
 func main() {
-	addOnInits := make(map[string]server.InitFunc)
+	addOnInits := make(map[string]astrolabe.InitFunc)
 	addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
 	addOnInits["ebs"] = ebs_astrolabe.NewEBSProtectedEntityTypeManager
 	addOnInits["k8sns"] = kubernetes.NewKubernetesNamespaceProtectedEntityTypeManagerFromConfig

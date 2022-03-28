@@ -9,15 +9,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
 	"github.com/vmware-tanzu/astrolabe/pkg/s3repository"
 	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
 	"strings"
 
+	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	// restClient is the underlying REST/Swagger client
 	restClient "github.com/vmware-tanzu/astrolabe/gen/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
-	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
 	// astrolabeClient is the Astrolabe API on top of the REST client
 	astrolabeClient "github.com/vmware-tanzu/astrolabe/pkg/client"
 	"github.com/vmware-tanzu/astrolabe/pkg/server"
@@ -55,23 +54,23 @@ func main() {
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "s3Repo",
-				Usage: "Configuration to use an S3 repo as the primary repository.  Formatted as '<region>:<bucket>:<prefix>'",
+				Name:     "s3Repo",
+				Usage:    "Configuration to use an S3 repo as the primary repository.  Formatted as '<region>:<bucket>:<prefix>'",
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "destS3Repo",
-				Usage: "Configuration to use an S3 repo as the optional destination repository.  Formatted as '<region>:<bucket>:<prefix>'",
+				Name:     "destS3Repo",
+				Usage:    "Configuration to use an S3 repo as the optional destination repository.  Formatted as '<region>:<bucket>:<prefix>'",
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "kopiaRepo",
-				Usage: "Kopia repo directory",
+				Name:     "kopiaRepo",
+				Usage:    "Kopia repo directory",
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "destKopiaRepo",
-				Usage: "Kopia repo directory to use as the optional destination repository",
+				Name:     "destKopiaRepo",
+				Usage:    "Kopia repo directory to use as the optional destination repository",
 				Required: false,
 			},
 		},
@@ -149,10 +148,9 @@ func setupProtectedEntityManagers(context *cli.Context, allowDual bool) (srcPem 
 		return
 	}
 	if confDirStr != "" {
-		addOnInits := make(map[string]server.InitFunc)
+		addOnInits := make(map[string]astrolabe.InitFunc)
 		addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
 		addOnInits["ebs"] = ebs_astrolabe.NewEBSProtectedEntityTypeManager
-		addOnInits["k8sns"] = kubernetes.NewKubernetesNamespaceProtectedEntityTypeManagerFromConfig
 		srcPem = server.NewProtectedEntityManager(confDirStr, addOnInits, logrus.New())
 	}
 	if s3RepoStr != "" {
@@ -444,7 +442,7 @@ func cp(c *cli.Context) error {
 		}()
 
 		bytesCopied, err = astrolabe.ZipProtectedEntityToFile(ctx, srcPE, zipFileWriter)
-	} else if srcFile != "" && destPEM != nil{
+	} else if srcFile != "" && destPEM != nil {
 		// copy a src file to an existing or new dest pe. BTW, the dest pe should be unconsumed.
 		srcFileReader, err := os.Open(srcFile)
 		if err != nil {

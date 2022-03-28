@@ -33,7 +33,7 @@ import (
 	"log"
 )
 
-func ServerMain(addonInits map[string]server.InitFunc) {
+func ServerMain(addonInits map[string]astrolabe.InitFunc) {
 	server, _, err := ServerInit(addonInits)
 	if err != nil {
 		log.Println("Error initializing server = %v\n", err)
@@ -47,7 +47,7 @@ func ServerMain(addonInits map[string]server.InitFunc) {
 	}
 }
 
-func ServerInit(addonInits map[string]server.InitFunc) (*restapi.Server, astrolabe.ProtectedEntityManager, error) {
+func ServerInit(addonInits map[string]astrolabe.InitFunc) (*restapi.Server, astrolabe.ProtectedEntityManager, error) {
 	confDirStr := flag.String("confDir", "", "Configuration directory")
 	apiPortStr := flag.String("apiPort", "1323", "REST API port")
 	insecure := flag.Bool("insecure", false, "Only use HTTP")
@@ -62,7 +62,7 @@ func ServerInit(addonInits map[string]server.InitFunc) (*restapi.Server, astrola
 		os.Exit(1)
 	}
 	//pem := server.NewProtectedEntityManager(*confDirStr, addonInits, logrus.New())
-	pem , err:= kopiarepo.NewKopiaRepositoryProtectedEntityManager(*confDirStr, logrus.New())
+	pem, err := kopiarepo.NewKopiaRepositoryProtectedEntityManager(*confDirStr, logrus.New())
 	if err != nil {
 		log.Printf("Could not initialize Kopia repo, err =%v\n", err)
 		os.Exit(1)

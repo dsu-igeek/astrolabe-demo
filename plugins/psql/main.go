@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the Astrolabe contributors
+ * Copyright the Astrolabe contributors
  * SPDX-License-Identifier: Apache-2.0
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package main
 
 import (
+	"github.com/hashicorp/go-plugin"
+	astrolabe_plugin "github.com/vmware-tanzu/astrolabe/pkg/plugin"
+	"github.com/vmware-tanzu/astrolabe/pkg/plugin/framework"
 	"github.com/dsu-igeek/astrolabe-demo/pkg/psql"
-	kubernetes "github.com/vmware-tanzu/astrolabe-velero/pkg/k8sns"
-	"github.com/vmware-tanzu/astrolabe/pkg/astrolabe"
-	ebs_astrolabe "github.com/vmware-tanzu/velero-plugin-for-aws/pkg/ebs-astrolabe"
 )
 
 func main() {
-	addOnInits := make(map[string]astrolabe.InitFunc)
-	addOnInits["psql"] = psql.NewPSQLProtectedEntityTypeManager
-	addOnInits["ebs"] = ebs_astrolabe.NewEBSProtectedEntityTypeManager
-	addOnInits["k8sns"] = kubernetes.NewKubernetesNamespaceProtectedEntityTypeManagerFromConfig
-	ServerMain(addOnInits)
+	plugin.Serve(&plugin.ServeConfig{
+		HandshakeConfig: framework.Handshake,
+		Plugins: map[string]plugin.Plugin{
+			astrolabe_plugin.PetmPluginName: &framework.ProtectedEntityTypeManagerPlugin{InitFunc: psql.NewPSQLProtectedEntityTypeManager},
+		},
+
+		// A non-nil value here enables gRPC serving for this plugin...
+		GRPCServer: plugin.DefaultGRPCServer,
+	})
 }
