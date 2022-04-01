@@ -10,8 +10,8 @@ kubectl delete --kubeconfig=/$CONF_DIR/kube/config namespace astrolabe
 kubectl create --kubeconfig=/$CONF_DIR/kube/config namespace astrolabe
 echo "Adding docker regcred"
 ./create-docker-regcred.sh $CONF_DIR
-echo "Generating IVD PE config"
-./gen-ivd-config.sh $CONF_DIR
+kubectl delete secret -n astrolabe aws-secret
+./create-aws-cred-secret.sh
 echo "Generating PSQL PE config"
 ./gen-psql-config.sh $CONF_DIR
 echo "Creating S3 config"

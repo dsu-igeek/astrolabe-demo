@@ -40,13 +40,13 @@ spec:
   - name: astrolabe-server
     image: dsmithuchida/astrolabe_server:latest
     env:
-      -name AWS_ACCESS_KEY_ID
-       valueFrom:
-         secretKeyRef:
-           name: aws-secret
-           key: aws_access_key_id
-           optional: false
-      -name AWS_SECRET_ACCESS_KEY
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: aws_access_key_id
+            optional: false
+      - name: AWS_SECRET_ACCESS_KEY
         valueFrom:
           secretKeyRef:
             name: aws-secret
@@ -66,13 +66,13 @@ spec:
   - name: astrolabe-minio
     image: dsmithuchida/astrolabe_minio:latest
     env:
-      -name AWS_ACCESS_KEY_ID
-       valueFrom:
-         secretKeyRef:
-           name: aws-secret
-           key: aws_access_key_id
-           optional: false
-      -name AWS_SECRET_ACCESS_KEY
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: aws_access_key_id
+            optional: false
+      - name: AWS_SECRET_ACCESS_KEY
         valueFrom:
           secretKeyRef:
             name: aws-secret
